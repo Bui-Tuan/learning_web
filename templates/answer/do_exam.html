@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>do exam</title>
+</head>
+<body>
+{% load static %}
+{% load answer_extras %}
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<h2>{{ exam.name }}</h2>
+<div>
+    Thời gian còn lại: <span id="timer">{{ remaining_seconds }}</span> giây
+</div>
+<form id="examForm">
+    {% csrf_token %}
+    <input type="hidden" name="student_exam_id" value="{{ student_exam.id }}">
+    {% for q in questions %}
+        <div class="question-box" style="margin-bottom: 20px;">
+            <b>Câu {{ forloop.counter }}:</b> <span class="question-content">{{ q.content|safe }}</span>
+            <div>
+                {% for c in q.choices %}
+                    <label>
+                        <input type="radio" name="answer_{{ q.id }}" value="{{ c.label }}"
+                            {% if answers|get_item:q.id == c.label %}checked{% endif %}>
+                        {{ c.label }}. {{ c.text }}
+                    </label><br>
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Nộp bài</button>
+</form>
+<script>
+    // --- Đồng hồ đếm ngược ---
+    let remain = {{ remaining_seconds }};
+    let timer = document.getElementById("timer");
+    function updateTimer() {
+        if (remain <= 0) {
+            clearInterval(interval);
+            document.getElementById('examForm').submit();
+        } else {
+            let min = Math.floor(remain/60);
+            let sec = remain%60;
+            timer.innerText = min + " phút " + sec + " giây";
+            remain -= 1;
+        }
+    }
+    updateTimer();
+    let interval = setInterval(updateTimer, 1000);
+
+    // --- Auto-save bằng localStorage + Ajax ---
+    const examId = "{{ student_exam.id }}";
+    function saveLocal() {
+        let data = {};
+        {% for q in questions %}
+            let radios = document.getElementsByName("answer_{{ q.id }}");
+            radios.forEach(radio => {
+                if (radio.checked) {
+                    data["{{ q.id }}"] = radio.value;
+                }
+            });
+        {% endfor %}
+        localStorage.setItem("exam_"+examId, JSON.stringify(data));
+    }
+    function restoreLocal() {
+        let data = localStorage.getItem("exam_"+examId);
+        if (data) {
+            data = JSON.parse(data);
+            for (let qid in data) {
+                let radio = document.querySelector('input[name="answer_'+qid+'"][value="'+data[qid]+'"]');
+                if (radio) radio.checked = true;
+            }
+        }
+    }
+    // Gán sự kiện thay đổi đáp án
+    document.querySelectorAll('input[type="radio"]').forEach(function(radio) {
+        radio.addEventListener("change", function() {
+            saveLocal();
+            saveServer();
+        });
+    });
+
+    // Tải lại đáp án khi vào lại trang
+    restoreLocal();
+
+    // Hàm auto-save lên server qua Ajax (cứ mỗi lần chọn đáp án)
+    function saveServer() {
+        let formData = new FormData(document.getElementById('examForm'));
+        fetch("{% url 'autosave_answer' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData
+        });
+    }
+
+    // Gửi nộp bài khi hết giờ
+    document.getElementById('examForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Xóa auto-save local
+        localStorage.removeItem("exam_"+examId);
+        // Gửi submit qua Ajax rồi chuyển trang
+        let formData = new FormData(document.getElementById('examForm'));
+        fetch("{% url 'submit_exam' student_exam.id %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: formData
+        }).then(r => window.location = "{% url 'exam_result' student_exam.id %}");
+    });
+</script>
+</body>
+</html>

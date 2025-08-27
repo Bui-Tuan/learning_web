@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>List question</title>
+</head>
+<body>
+<h2>Danh sách câu hỏi</h2>
+<table border="1" cellpadding="5" style="border-collapse:collapse;">
+    <tr>
+        <th>ID</th>
+        <th>Nội dung</th>
+        <th>Ảnh minh họa</th>
+        <th>Độ khó</th>
+        <th>Đáp án đúng</th>
+        <th>Lựa chọn</th>
+        <th>Thao tác</th>
+    </tr>
+    {% for q in questions %}
+    <tr>
+        <td>{{ q.id }}</td>
+        <td style="min-width:220px;">{{ q.content|safe }}</td>
+        <td>
+            {% for img in q.images.all %}
+                <img src="{{ img.image.url }}" style="max-width:60px;max-height:60px;margin:2px;vertical-align:middle;">
+            {% empty %}
+                <span>--</span>
+            {% endfor %}
+        </td>
+        <td>{{ q.rate }}</td>
+        <td>{{ q.correct_answer }}</td>
+        <td>
+            <ul style="margin:0;">
+            {% for c in q.choices.all %}
+                <li>
+                    <b>{{ c.label }}:</b>
+                    {{ c.text }}
+                    {% if c.image %}
+                        <img src="{{ c.image.url }}" style="max-width:40px;vertical-align:middle;">
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        </td>
+        <td>
+            <a href="{% url 'edit_question' q.id %}">Sửa</a> |
+            <a href="{% url 'delete_question' q.id %}">Xóa</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="7">Chưa có câu hỏi nào.</td>
+    </tr>
+    {% endfor %}
+</table>
+<br>
+<a href="{% url 'create_question' %}" class="btn btn-success">Tạo câu hỏi mới</a>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<h2>Sửa đề thi: {{ exam.title|default:exam.name }}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  <p>{{ form.classroom.label_tag }} {{ form.classroom }}</p>
+  <p>{{ form.title.label_tag }} {{ form.title }}</p>
+  <p>{{ form.duration.label_tag }} {{ form.duration }}</p>
+  <p>{{ form.start_time.label_tag }} {{ form.start_time }}</p>
+  <p>{{ form.end_time.label_tag }} {{ form.end_time }}</p>
+
+  <button type="submit" class="btn btn-primary">Lưu</button>
+  <a href="{% url 'exam_list' %}">Hủy</a>
+</form>

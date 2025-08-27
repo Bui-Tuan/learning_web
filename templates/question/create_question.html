@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tạo câu hỏi mới</title>
+    <!-- MathJax -->
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .flex-container { display: flex; gap: 2rem; }
+        .input-col, .preview-col { width: 50%; min-width: 350px; }
+        .preview-box { border: 1px solid #ccc; border-radius: 6px; padding: 16px; background: #f9f9f9; min-height: 200px; }
+    </style>
+</head>
+<body>
+<h2>Tạo câu hỏi mới</h2>
+<div class="flex-container">
+    <!-- Nhập liệu -->
+    <div class="input-col">
+        <form id="questionForm" method="post" enctype="multipart/form-data" autocomplete="off">
+            {% csrf_token %}
+            <label><b>Nội dung đề bài (gõ LaTeX nếu cần):</b></label>
+            {{ form.content }}
+            <br>
+            <label><b>Đáp án đúng:</b></label>
+            {{ form.correct_answer }}
+            <br>
+            <label><b>Ảnh minh họa đề bài (có thể chọn nhiều):</b></label>
+            {{ form.images }}
+            <hr>
+            <h4>Nhập các lựa chọn (A/B/C/D):</h4>
+            {{ formset.management_form }}
+            <table>
+                <thead>
+                <tr>
+                    <th>Ký hiệu</th>
+                    <th>Nội dung</th>
+                    <th>Ảnh minh họa</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for subform in formset %}
+                <tr>
+                    <td>{{ subform.label }}</td>
+                    <td>{{ subform.text }}</td>
+                    <td>{{ subform.image }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <button type="submit" class="btn btn-success">Tạo câu hỏi</button>
+        </form>
+    </div>
+    <!-- Preview -->
+    <div class="preview-col">
+        <h4>Xem trước đề bài</h4>
+        <div class="preview-box">
+            <div id="preview-content"></div>
+            <div id="preview-images"></div>
+        </div>
+        <h5>Đáp án lựa chọn</h5>
+        <div class="preview-box">
+            <ul id="preview-choices"></ul>
+        </div>
+    </div>
+</div>
+<script>
+    function updatePreview() {
+        document.getElementById("preview-content").innerText = document.getElementById("id_content").value;
+        // Ảnh đề bài
+        const imgInput = document.getElementById("id_images");
+        const imgDiv = document.getElementById("preview-images");
+        imgDiv.innerHTML = "";
+        if (imgInput && imgInput.files) {
+            for (let file of imgInput.files) {
+                const img = document.createElement("img");
+                img.style.maxWidth = "120px";
+                img.style.marginRight = "10px";
+                img.src = URL.createObjectURL(file);
+                imgDiv.appendChild(img);
+            }
+        }
+        // Đáp án
+        let choicesHtml = "";
+        ['A','B','C','D'].forEach(function(label, idx) {
+            const txt = document.getElementById(`id_choices-${idx}-text`);
+            const img = document.getElementById(`id_choices-${idx}-image`);
+            choicesHtml += `<li><b>${label}:</b> ` +
+                (txt && txt.value ? txt.value : "") + " ";
+            if (img && img.files && img.files.length > 0) {
+                const file = img.files[0];
+                const imageUrl = URL.createObjectURL(file);
+                choicesHtml += `<img src="${imageUrl}" style="max-width:60px;vertical-align:middle;">`;
+            }
+            choicesHtml += "</li>";
+        });
+        document.getElementById("preview-choices").innerHTML = choicesHtml;
+        if (window.MathJax) { MathJax.typesetPromise(); }
+    }
+    document.getElementById("id_content").addEventListener("input", updatePreview);
+    document.getElementById("id_images").addEventListener("change", updatePreview);
+    for (let i = 0; i < 4; i++) {
+        const txt = document.getElementById(`id_choices-${i}-text`);
+        const img = document.getElementById(`id_choices-${i}-image`);
+        if (txt) txt.addEventListener("input", updatePreview);
+        if (img) img.addEventListener("change", updatePreview);
+    }
+    updatePreview();
+</script>
+</body>
+</html>

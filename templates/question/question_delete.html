@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Delete question</title>
+</head>
+<body>
+
+<h3>Bạn có chắc muốn xóa câu hỏi này?</h3>
+<div>
+    <b>{{ question.content|linebreaksbr }}</b>
+    <ul>
+    {% for img in question.images.all %}
+        <li><img src="{{ img.image.url }}" style="max-width:120px;"></li>
+    {% endfor %}
+    </ul>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Xóa</button>
+    <a href="{% url 'question_list' %}" class="btn btn-secondary">Hủy</a>
+</form>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>list student in class</title>
+</head>
+<body>
+    <h2>Danh sách học viên lớp {{ classroom.name }} ({{ classroom.code }})</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Họ và tên</th>
+                <th>Email</th>
+                <th>Ngày tham gia</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in students %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ entry.id_student.full_name }}</td>
+                    <td>{{ entry.id_student.email }}</td>
+                    <td>{{ entry.join_time|date:"d/m/Y H:i" }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">Chưa có học viên nào tham gia lớp này.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'classroom_detail' classroom.id %}">← Quay lại lớp học</a>
+</body>
+</html>

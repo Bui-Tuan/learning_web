@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h2>Tạo đề thi từ các câu hỏi vừa upload</h2>
+
+<form method="post">
+  {% csrf_token %}
+  <div>
+    {{ form.as_p }}
+  </div>
+
+  <h4>Sẽ thêm {{ uploaded_questions|length }} câu hỏi:</h4>
+  <ol>
+    {% for q in uploaded_questions %}
+      <li>
+        <div>{{ q.content|safe }}</div>
+        {% if q.questionimage_set.all %}
+          {% for img in q.questionimage_set.all %}
+            <img src="{{ img.image.url }}" alt="img" style="max-width:220px;margin:6px 0;">
+          {% endfor %}
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+
+  <button type="submit" class="btn btn-primary">Tạo đề thi</button>
+</form>
+{% endblock %}

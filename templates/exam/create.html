@@ -1,0 +1,83 @@
+
+{% load static %}
+<h2>Tạo đề thi</h2>
+
+<form method="get" class="box" style="margin-bottom:12px;">
+  <fieldset>
+    <legend>Bộ lọc câu hỏi</legend>
+    Từ khoá: <input type="text" name="q_keyword" value="{{ form.q_keyword.value|default_if_none:'' }}">
+    Độ khó: {{ form.q_rate }}
+    Môn: <input type="text" name="q_subject" value="{{ form.q_subject.value|default_if_none:'' }}">
+    Khối: <input type="text" name="q_grade" value="{{ form.q_grade.value|default_if_none:'' }}">
+    <button type="submit">Lọc</button>
+  </fieldset>
+</form>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="box">
+    <h3>Thông tin đề thi</h3>
+    <p>{{ form.classroom.label_tag }} {{ form.classroom }}</p>
+    <p>{{ form.title.label_tag }} {{ form.title }}</p>
+    <p>{{ form.duration.label_tag }} {{ form.duration }}</p>
+    <p>{{ form.start_time.label_tag }} {{ form.start_time }}</p>
+    <p>{{ form.end_time.label_tag }} {{ form.end_time }}</p>
+  </div>
+
+  <div class="box">
+    <h3>Chọn câu hỏi</h3>
+    <p>Trang này hiển thị {{ page_obj.object_list|length }} / tổng {{ page_obj.paginator.count }} câu. Tick để đưa vào đề (thứ tự theo thứ tự tick).</p>
+
+    <table border="1" cellpadding="6" cellspacing="0" width="100%">
+      <thead>
+        <tr>
+          <th>Chọn</th>
+          <th>Nội dung</th>
+          <th>Độ khó</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for q in page_obj.object_list %}
+        <tr>
+          <td><input type="checkbox" name="selected_questions" value="{{ q.id }}"></td>
+          <td>
+            <div>{{ q.content|safe }}</div>
+            {% if q.questionimage_set.all %}
+              {% for img in q.questionimage_set.all %}
+                <div><img src="{{ img.image.url }}" style="max-width:220px;margin:6px 0;"></div>
+              {% endfor %}
+            {% endif %}
+          </td>
+          <td>
+            {% if q.rate %}{{ q.rate }}{% elif q.level_rate %}{{ q.level_rate }}{% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3">Không có câu hỏi nào.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="margin-top:8px;">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q_keyword={{ form.q_keyword.value }}&q_rate={{ form.q_rate.value }}&q_subject={{ form.q_subject.value }}&q_grade={{ form.q_grade.value }}">« Trang trước</a>
+      {% endif %}
+      <span>Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q_keyword={{ form.q_keyword.value }}&q_rate={{ form.q_rate.value }}&q_subject={{ form.q_subject.value }}&q_grade={{ form.q_grade.value }}">Trang sau »</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Tạo đề thi</button>
+</form>
+
+<!-- MathJax để render LaTeX (nếu câu hỏi có công thức) -->
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['\\[','\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>

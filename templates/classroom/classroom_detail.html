@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Classroom detail</title>
+</head>
+
+<body>
+    <h2>{{ classroom.name }} ({{ classroom.code }})</h2>
+    <p><strong>Giáo viên:</strong> {{ classroom.id_teacher.full_name }}</p>
+    <p><strong>Mô tả:</strong> {{ classroom.description }}</p>
+    <p><strong>Trạng thái:</strong> {{ classroom.get_status_display }}</p>
+    <hr>
+
+    {% if user.role == "student" %}
+    {% if not already_joined %}
+    {% if classroom.status == "open" %}
+    <a href="{% url 'join_classroom_confirm' classroom.id %}" class="btn btn-primary">
+        Tham gia lớp học
+    </a>
+    {% else %}
+    <p class="text-danger">Lớp chưa mở hoặc đã đóng.</p>
+    {% endif %}
+
+    <h4>Giới thiệu lớp học</h4>
+    <p>Thông tin mô tả lớp và điều kiện học tập...</p>
+
+    {% else %}
+    <h4>Nội dung lớp học</h4>
+    <ul>
+        <li>Bài kiểm tra</li>
+        <li>Thông báo</li>
+        <!-- ... -->
+    </ul>
+    {% endif %}
+    {% endif %}
+
+    {% if user.role == "teacher" and classroom.id_teacher == user %}
+    <a href="{% url 'modify_classroom' classroom.id %}" class="btn btn-warning">
+        Chỉnh sửa lớp học
+    </a>
+
+    <form action="{% url 'delete_classroom' classroom.id %}" method="POST" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn chắc chắn muốn xóa lớp học?');">
+            Delete Classroom
+        </button>
+    </form>
+
+    <a href="{% url 'student_list_in_class' classroom.id %}" class="btn btn-info">Xem danh sách học viên</a>
+    {% endif %}
+
+</body>
+
+</html>
