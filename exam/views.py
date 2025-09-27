@@ -183,39 +183,53 @@ class CreateExamForm(forms.Form):
 
 
 def _assign_exam_fields(exam: Exam, *, classroom, title, duration, start_time=None, end_time=None, user=None):
-    """Gán field theo tên có sẵn trong model Exam (linh hoạt)."""
+    """Gán field theo tên có sẵn trong model Exam (linh hoạt/đa dạng hoá)."""
+
+    # --- GÁN CLASSROOM CHẮC CHẮN ---
+    # Trường hợp phổ biến: FK tên 'classroom'
     if hasattr(exam, 'classroom'):
         exam.classroom = classroom
-    # title/name
+    # Một số codebase dùng 'id_classroom' (FK tới Classroom)
+    elif hasattr(exam, 'id_classroom'):
+        exam.id_classroom = classroom
+    # Dự phòng cuối: gán trực tiếp *_id nếu tồn tại (Django luôn có <fk>_id)
+    elif hasattr(exam, 'classroom_id'):
+        exam.classroom_id = classroom.pk
+    else:
+        # Nếu model không có bất kỳ field nào ở trên thì thông báo rõ
+        raise AttributeError("Exam model does not have a classroom ForeignKey")
+
+    # --- TITLE/NAME ---
     if hasattr(exam, 'title'):
         exam.title = title
     elif hasattr(exam, 'name'):
         exam.name = title
-    # duration
+
+    # --- DURATION (hỗ trợ cả 'duration' và 'duration_minutes') ---
     if hasattr(exam, 'duration_minutes'):
         exam.duration_minutes = duration
     elif hasattr(exam, 'duration'):
         exam.duration = duration
-    # thời gian
+
+    # --- OPEN/CLOSE TIME (hỗ trợ cả 'open_time/close_time' và 'start_time/end_time') ---
     if start_time:
-        for fld in ['start_time', 'open_time', 'start_at', 'available_from']:
-            if hasattr(exam, fld):
-                setattr(exam, fld, start_time); break
+        if hasattr(exam, 'open_time'):
+            exam.open_time = start_time
+        elif hasattr(exam, 'start_time'):
+            exam.start_time = start_time
     if end_time:
-        for fld in ['end_time', 'close_time', 'end_at', 'available_to', 'deadline']:
-            if hasattr(exam, fld):
-                setattr(exam, fld, end_time); break
-    # owner/creator
-    for fld in ['created_by', 'creator', 'owner', 'teacher']:
-        if hasattr(exam, fld):
-            setattr(exam, fld, user); break
-    # code
-    if hasattr(exam, 'code') and not getattr(exam, 'code', None):
-        exam.code = _generate_exam_code(6)
-    # active flag
-    for fld in ['is_active', 'active']:
-        if hasattr(exam, fld) and getattr(exam, fld) is None:
-            setattr(exam, fld, True)
+        if hasattr(exam, 'close_time'):
+            exam.close_time = end_time
+        elif hasattr(exam, 'end_time'):
+            exam.end_time = end_time
+
+    # --- OWNER/GIÁO VIÊN (nếu có) ---
+    if user is not None:
+        # tuỳ model của bạn: owner/teacher/created_by?
+        for attr in ('owner', 'teacher', 'created_by', 'author'):
+            if hasattr(exam, attr):
+                setattr(exam, attr, user)
+                break
 
 
 @login_required
@@ -259,23 +273,34 @@ def create_exam(request, classroom_id=None):
 
         # Lấy các id câu hỏi được tick
         selected_ids = request.POST.getlist('selected_questions')
+        selected_ids = request.POST.getlist('selected_questions')
         if not selected_ids:
             messages.error(request, "Bạn chưa chọn câu hỏi nào.")
         elif form.is_valid():
-            classroom = form.cleaned_data['classroom']
+            classroom = form.cleaned_data.get('classroom')
+            if classroom is None and classroom_id:
+                # Fallback khi người dùng truy cập URL dạng /exam/classroom/<id>/create/
+                classroom = get_object_or_404(Classroom, id=classroom_id)
+
+            if classroom is None:
+                messages.error(request, "Không xác định được lớp học cho đề thi.")
+                return render(request, 'exam/create.html', {'form': form, 'questions': qs})
+
             title = form.cleaned_data['title']
             duration = form.cleaned_data['duration']
             start_time = form.cleaned_data.get('start_time')
             end_time = form.cleaned_data.get('end_time')
 
             exam = Exam()
-            _assign_exam_fields(exam,
-                                classroom=classroom,
-                                title=title,
-                                duration=duration,
-                                start_time=start_time,
-                                end_time=end_time,
-                                user=request.user)
+            _assign_exam_fields(
+                exam,
+                classroom=classroom,
+                title=title,
+                duration=duration,
+                start_time=start_time,
+                end_time=end_time,
+                user=request.user
+            )
             exam.save()
 
             # Tạo ExamQuestion theo đúng thứ tự người dùng thấy/submit
@@ -285,7 +310,7 @@ def create_exam(request, classroom_id=None):
             for sid in selected_ids:
                 q = qs_map.get(int(sid))
                 if q:
-                    ExamQuestion.objects.create(exam=exam, question=q, order=order)
+                    ExamQuestion.objects.create(exam=exam, question=q, position=order)
                     order += 1
 
             messages.success(request, f"Đã tạo đề “{getattr(exam,'title',getattr(exam,'name',''))}” với {order-1} câu hỏi.")
@@ -355,16 +380,50 @@ def _get_exam_times(exam: Exam):
 
 
 def _is_owner(exam: Exam, user) -> bool:
+    # Chưa đăng nhập thì thôi
+    if not getattr(user, 'is_authenticated', False):
+        return False
+
+    # Superuser thì cho qua
     if getattr(user, 'is_superuser', False):
         return True
-    for fld in ['created_by', 'creator', 'owner', 'teacher']:
-        if hasattr(exam, fld) and getattr(exam, fld) == user:
-            return True
-    # fallback theo classroom
-    if hasattr(exam, 'classroom'):
-        cl = getattr(exam, 'classroom', None)
-        if cl and (getattr(cl, 'owner', None) == user or getattr(cl, 'teacher', None) == user):
-            return True
+
+    uid = getattr(user, 'pk', None)
+
+    # 1) Kiểm tra trực tiếp trên Exam (nếu project nào có các field này)
+    exam_owner_fields = (
+        'created_by', 'creator', 'owner', 'teacher', 'author', 'createdBy',
+        'id_owner', 'id_teacher',
+    )
+    for fld in exam_owner_fields:
+        if hasattr(exam, fld):
+            val = getattr(exam, fld)
+            # So sánh cả object và *_id để tránh instance khác nhau
+            if val == user or getattr(exam, f"{fld}_id", None) == uid:
+                return True
+
+    # 2) Fallback qua Classroom
+    cl = getattr(exam, 'classroom', None)
+    if cl:
+        classroom_owner_fields = (
+            'owner', 'teacher', 'created_by', 'creator', 'author',
+            'id_owner', 'id_teacher',
+        )
+        for fld in classroom_owner_fields:
+            if hasattr(cl, fld):
+                val = getattr(cl, fld)
+                if val == user or getattr(cl, f"{fld}_id", None) == uid:
+                    return True
+
+        # Nếu có M2M teachers (một số schema đặt như vậy)
+        if hasattr(cl, 'teachers'):
+            try:
+                if cl.teachers.filter(pk=uid).exists():
+                    return True
+            except Exception:
+                pass  # trong trường hợp teachers không phải queryset
+
+    # 3) Không match được gì
     return False
 
 
@@ -448,6 +507,11 @@ def exam_edit(request, exam_id):
     """Chỉnh sửa thông tin đề thi."""
     exam = get_object_or_404(Exam, id=exam_id)
     if not _is_owner(exam, request.user):
+        who = getattr(request.user, 'username', request.user.pk)
+        cls = getattr(exam, 'classroom', None)
+        cls_info = getattr(cls, 'id', None)
+        # Ví dụ log ra console:
+        print(f"[DEBUG] exam_edit denied: user={who}, classroom={cls_info}")
         messages.error(request, "Bạn không có quyền sửa đề này.")
         return redirect('exam_list')
 
