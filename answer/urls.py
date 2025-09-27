@@ -12,4 +12,5 @@ urlpatterns = [
     path('submit/<int:student_exam_id>/', views.submit_exam, name='submit_exam'),
     path('result/<int:student_exam_id>/', views.exam_result, name='exam_result'),
     path('continue/<int:student_exam_id>/', views.exam_continue, name='exam_continue'),
+    path('results/grouped/', views.student_results_grouped, name='student_results_grouped'),
 ]

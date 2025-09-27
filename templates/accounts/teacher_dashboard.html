@@ -1,15 +1,95 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Teacher dashboard</title>
-</head>
-<body>
-    <h2>Chào mừng {{ user.full_name }} (Giáo viên)</h2>
-    <p>Đây là trang quản lý lớp học, câu hỏi và bài kiểm tra.</p>
-    <a href="{% url 'logout' %}">Đăng xuất</a>
-</body>
-</html>
+{% extends "dashboard_base_teacher.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Bảng điều khiển{% endblock %}
+{% block breadcrumb %}Giáo viên · Bảng điều khiển{% endblock %}
+
+{% block header_actions %}
+  <a href="{% url 'create_exam' %}" class="btn btn-primary"><i class="bx bx-edit-alt me-1"></i> Tạo đề</a>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-md-3">
+    <div class="card card-hover">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <div class="text-muted">Lớp đang dạy</div>
+            <h3 class="mb-0">{{ stats.classroom_count|default:"0" }}</h3>
+          </div>
+          <i class="bx bx-chalkboard fs-1 text-primary"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover"><div class="card-body d-flex justify-content-between">
+      <div><div class="text-muted">Ngân hàng câu hỏi</div><h3 class="mb-0">{{ stats.question_count|default:"0" }}</h3></div>
+      <i class="bx bx-collection fs-1 text-primary"></i>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover"><div class="card-body d-flex justify-content-between">
+      <div><div class="text-muted">Đề thi</div><h3 class="mb-0">{{ stats.exam_count|default:"0" }}</h3></div>
+      <i class="bx bx-file fs-1 text-primary"></i>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card card-hover"><div class="card-body d-flex justify-content-between">
+      <div><div class="text-muted">Bài nộp tuần này</div><h3 class="mb-0">{{ stats.submission_week|default:"0" }}</h3></div>
+      <i class="bx bx-check-shield fs-1 text-primary"></i>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-lg-8">
+    <div class="card h-100 card-hover">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Lớp đang hoạt động</h5>
+        <a href="{% url 'classroom_list' %}" class="small">Xem tất cả</a>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          {% for c in classrooms|slice:":6" %}
+            <div class="col-md-6">
+              <a class="card bg-light border-0" href="{% url 'classroom_detail' c.id %}">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between">
+                    <h6 class="mb-1">{{ c.name }}</h6>
+                    <span class="badge bg-primary">{{ c.students.count }} HS</span>
+                  </div>
+                  <div class="text-muted small">{{ c.description|default:"" }}</div>
+                </div>
+              </a>
+            </div>
+          {% empty %}
+            <div class="col-12 text-muted">Chưa có lớp.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100 card-hover">
+      <div class="card-header"><h5 class="mb-0">Sự kiện</h5></div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          {% for e in upcoming_exams|slice:":6" %}
+            <li class="mb-3 d-flex align-items-start">
+              <i class="bx bx-calendar me-2 mt-1"></i>
+              <div>
+                <div><strong>{{ e.title|default:e.name }}</strong></div>
+                <small class="text-muted">Mở: {{ e.start_time|default:e.open_time }}</small>
+              </div>
+            </li>
+          {% empty %}
+            <li class="text-muted">Chưa có sự kiện sắp tới.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

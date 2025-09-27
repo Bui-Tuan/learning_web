@@ -1,6 +1,7 @@
 # answer/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from datetime import datetime, timezone as dt_timezone
 from django.utils import timezone
 from django.contrib import messages
 from classroom.models import ClassroomStudent
@@ -9,6 +10,9 @@ from .decorators import role_required
 from django import forms
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.core.paginator import Paginator
+from django.db.models import Avg
+from classroom.models import Classroom
 
 
 @login_required
@@ -270,3 +274,105 @@ def exam_continue(request, student_exam_id):
 
     # Nếu vẫn còn thời gian, chuyển sang trang làm bài (giống như vào mới)
     return redirect('do_exam', student_exam_id=student_exam.id)
+
+
+def _get_se_score(se):
+    for fld in ['score', 'mark', 'points', 'total_score']:
+        if hasattr(se, fld):
+            return getattr(se, fld)
+    return None
+
+
+def _get_se_total(se):
+    for fld in ['total', 'max_score', 'full_mark']:
+        if hasattr(se, fld):
+            return getattr(se, fld)
+    return None
+
+
+def _get_se_submitted_at(se):
+    for fld in ['submitted_at', 'submit_time', 'submitted_time', 'submitted_on']:
+        if hasattr(se, fld):
+            return getattr(se, fld)
+    return None
+
+
+def _aware(dt):
+    if dt is None:
+        return None
+    if timezone.is_naive(dt):
+        return timezone.make_aware(dt, timezone.get_current_timezone())
+    return dt
+
+
+@login_required
+@role_required('student')
+def student_results_grouped(request):
+    """
+    Danh sách điểm của học sinh, NHÓM theo lớp.
+    - Mỗi lớp có phân trang độc lập (page_c<CLASS_ID>).
+    - Hỗ trợ lọc từ khoá (?kw=) theo tiêu đề đề thi.
+    """
+    user = request.user
+    kw = (request.GET.get('kw') or '').strip()
+
+    # Lớp mà học sinh đang tham gia
+    classrooms = Classroom.objects.filter(students__id_student=user).distinct().order_by('name', 'id')
+
+    groups = []
+    total_records = 0
+
+    for c in classrooms:
+        # StudentExam thuộc các exam của lớp c
+        se_qs = StudentExam.objects.select_related('exam').filter(student=user, exam__classroom=c)
+
+        # Lọc theo từ khoá tiêu đề đề thi (title/name)
+        if kw:
+            se_qs = se_qs.filter(
+                (  # title
+                    (hasattr(Exam, 'title') and  # chỉ thêm filter nếu có field
+                     (True))  # placeholder để giữ syntax
+                )
+            )
+            # Vì Django ORM không cho if động trong Q theo kiểu trên,
+            # ta làm mềm bằng cách tách 2 nhánh:
+            if hasattr(Exam, 'title'):
+                se_qs = se_qs.filter(exam__title__icontains=kw)
+            elif hasattr(Exam, 'name'):
+                se_qs = se_qs.filter(exam__name__icontains=kw)
+
+        # Sắp xếp: ưu tiên theo thời gian nộp nếu có, rồi id mới nhất
+        se_list = list(se_qs.select_related('exam').order_by('-id')[:500])  # limit an toàn
+        se_list.sort(
+            key=lambda se: (_aware(_get_se_submitted_at(se)) or datetime(1970, 1, 1, tzinfo=dt_timezone.utc)),
+            reverse=True
+        )
+
+        # Phân trang riêng cho lớp này: tham số ?page_c<id>=N
+        page_param = f'page_c{c.id}'
+        page_num = request.GET.get(page_param, 1)
+        paginator = Paginator(se_list, 10)
+        page_obj = paginator.get_page(page_num)
+
+        # Tính trung bình lớp này (nếu có field score/mark)
+        avg_value = None
+        if hasattr(StudentExam, 'score'):
+            avg_value = se_qs.aggregate(x=Avg('score'))['x']
+        elif hasattr(StudentExam, 'mark'):
+            avg_value = se_qs.aggregate(x=Avg('mark'))['x']
+        avg_value = round(avg_value, 1) if avg_value is not None else None
+
+        groups.append({
+            "classroom": c,
+            "page_obj": page_obj,      # => dùng page_obj.object_list để render bảng cho lớp này
+            "avg_score": avg_value,    # trung bình điểm trong lớp này của học sinh
+            "count": len(se_list),
+            "page_param": page_param,  # để build link phân trang per-class
+        })
+        total_records += len(se_list)
+
+    return render(request, 'answer/results_grouped.html', {
+        "groups": groups,
+        "kw": kw,
+        "total_records": total_records,
+    })

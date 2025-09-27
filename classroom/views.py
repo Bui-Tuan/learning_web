@@ -15,16 +15,12 @@ def classroom_list(request):
     if user.role == 'teacher':
         # Lấy các lớp mà giáo viên đó quản lý
         classrooms = Classroom.objects.filter(id_teacher=user)
+        return render(request, 'classroom/classes_list_teacher.html', {'classrooms': classrooms})
 
     elif user.role == 'student':
         # Lấy các lớp mà học sinh đã tham gia
         classrooms = Classroom.objects.filter(students__id_student=user).distinct()
-
-    else:
-        # Với admin hoặc role khác, có thể trả về tất cả hoặc rỗng
-        classrooms = Classroom.objects.none()
-
-    return render(request, 'classroom/classes_list.html', {'classrooms': classrooms})
+        return render(request, 'classroom/classes_list_student.html', {'classrooms': classrooms})
 
 
 @login_required

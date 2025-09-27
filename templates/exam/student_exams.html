@@ -1,0 +1,61 @@
+{% extends "dashboard_base_student.html" %}
+{% block title %}Kỳ thi{% endblock %}
+{% block page_title %}Kỳ thi của tôi{% endblock %}
+{% block breadcrumb %}Học sinh · Kỳ thi{% endblock %}
+
+{% block content %}
+<form method="get" class="mb-3">
+  <div class="input-group">
+    <input class="form-control" name="kw" placeholder="Tìm theo tiêu đề / mã đề" value="{{ kw }}">
+    <button class="btn btn-secondary">Tìm</button>
+  </div>
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th><th>Mã</th><th>Tiêu đề</th><th>Lớp</th><th>Mở</th><th>Đóng</th><th>Thời lượng</th><th>Trạng thái</th><th class="text-end">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for e in page_obj.object_list %}
+        <tr>
+          <td>{{ e.id }}</td>
+          <td>{{ e.code }}</td>
+          <td>{{ e.title|default:e.name }}</td>
+          <td>{% if e.classroom %}{{ e.classroom }}{% endif %}</td>
+          <td>{{ e.start_time|default:e.open_time|default_if_none:"—" }}</td>
+          <td>{{ e.end_time|default:e.close_time|default_if_none:"—" }}</td>
+          <td>{% if e.duration_minutes %}{{ e.duration_minutes }}’{% elif e.duration %}{{ e.duration }}’{% endif %}</td>
+          <td>
+            {# Optional: nếu view có truyền e.status ('upcoming'/'open'/'closed'/'in_process') #}
+            {% if e.status %}<span class="badge bg-label-primary">{{ e.status }}</span>{% else %}—{% endif %}
+          </td>
+          <td class="text-end">
+            {# TODO: Đổi sang URL name thật của app answer #}
+            <a class="btn btn-sm btn-primary" href="#">{% if e.status == 'in_process' %}Tiếp tục{% else %}Tham gia{% endif %}</a>
+            <a class="btn btn-sm btn-outline-secondary" href="#">Chi tiết</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="text-muted">Chưa có kỳ thi.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+  <div>Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</div>
+  <div class="d-flex gap-2">
+    {% if page_obj.has_previous %}
+      <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}&kw={{ kw }}">«</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}&kw={{ kw }}">»</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

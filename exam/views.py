@@ -11,6 +11,7 @@ from question.decorators import role_required  # đã có trong project
 from question.models import Question
 from classroom.models import Classroom
 from exam.models import Exam, ExamQuestion
+from answer.models import StudentExam
 
 
 def _generate_exam_code(length=6):
@@ -427,7 +428,7 @@ def exam_list(request, classroom_id=None):
             qs = qs.filter(q_kw)
 
     # annotate số câu hỏi
-    qs = qs.annotate(qcount=Count('examquestion'))
+    qs = qs.annotate(qcount=Count('questions', distinct=True)).select_related('classroom').prefetch_related('questions')
     # nếu related_name khác 'examquestion', fallback tính tay ở template
 
     # pagination
@@ -499,3 +500,100 @@ def exam_delete(request, exam_id):
         return redirect('exam_list')
 
     return render(request, 'exam/confirm_delete.html', {'exam': exam})
+
+
+def _get_exam_start(exam):
+    for fld in ['start_time', 'open_time', 'start_at', 'available_from']:
+        if hasattr(exam, fld):
+            return getattr(exam, fld)
+    return None
+
+
+def _get_exam_end(exam):
+    for fld in ['end_time', 'close_time', 'end_at', 'available_to', 'deadline']:
+        if hasattr(exam, fld):
+            return getattr(exam, fld)
+    return None
+
+
+@login_required
+@role_required('student')
+def student_exams(request):
+    """
+    Danh sách kỳ thi mà học sinh có quyền tham gia:
+    - Lấy theo các lớp mà học sinh đã tham gia (ClassroomStudent).
+    - Tìm kiếm theo tiêu đề / tên / mã đề (?kw=).
+    - Tính trạng thái cho từng Exam: upcoming/open/closed/in_process/submitted.
+    """
+    user = request.user
+    now = timezone.now()
+
+    # Lấy các lớp học sinh đang ở
+    class_ids = list(
+        Classroom.objects.filter(students__id_student=user)
+        .values_list('id', flat=True).distinct()
+    )
+
+    # Base queryset: các Exam thuộc các lớp đó
+    qs = Exam.objects.all()
+    if hasattr(Exam, 'classroom'):
+        qs = qs.filter(classroom_id__in=class_ids)
+
+    # Tìm kiếm từ khoá
+    kw = (request.GET.get('kw') or '').strip()
+    if kw:
+        q_kw = Q()
+        if hasattr(Exam, 'title'):
+            q_kw |= Q(title__icontains=kw)
+        if hasattr(Exam, 'name'):
+            q_kw |= Q(name__icontains=kw)
+        if hasattr(Exam, 'code'):
+            q_kw |= Q(code__icontains=kw)
+        if q_kw:
+            qs = qs.filter(q_kw)
+
+    # Sắp xếp: ưu tiên theo thời gian mở nếu có, fallback theo id mới nhất
+    if hasattr(Exam, 'start_time'):
+        qs = qs.order_by('-start_time', '-id')
+    elif hasattr(Exam, 'open_time'):
+        qs = qs.order_by('-open_time', '-id')
+    else:
+        qs = qs.order_by('-id')
+
+    # Phân trang
+    page_obj = Paginator(qs, 10).get_page(request.GET.get('page', 1))
+
+    # Tính trạng thái cho từng exam (và gắn vào instance để template dùng e.status)
+    exam_ids = [e.id for e in page_obj.object_list]
+    # Map StudentExam theo exam_id
+    se_by_exam = {}
+    for se in StudentExam.objects.filter(student=user, exam_id__in=exam_ids).order_by('-id'):
+        se_by_exam.setdefault(se.exam_id, se)
+
+    def compute_status(e):
+        st = _get_exam_start(e)
+        et = _get_exam_end(e)
+        se = se_by_exam.get(e.id)
+
+        # Trạng thái theo StudentExam nếu có
+        if se:
+            status = getattr(se, 'status', None)
+            if status in ('submitted', 'in_process', 'joined'):
+                return status
+
+        # Nếu không có SE hoặc không có status rõ ràng -> tính theo thời gian
+        if st and now < st:
+            return 'upcoming'
+        if et and now > et:
+            return 'closed'
+        # nếu không có start -> coi như 'open' đến khi quá et
+        return 'open'
+
+    # Gắn thuộc tính status để template dùng {{ e.status }}
+    for e in page_obj.object_list:
+        setattr(e, 'status', compute_status(e))
+
+    return render(request, 'exam/student_exams.html', {
+        'page_obj': page_obj,
+        'kw': kw,
+    })

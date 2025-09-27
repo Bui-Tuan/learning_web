@@ -40,14 +40,6 @@ MATH_DOLLAR_RE  = re.compile(r'\$(.*?)\$', re.DOTALL)       # $ ... $
 
 # Thêm các regex để nhận các khối toán
 def _clean_inside_math(text: str) -> str:
-    """
-    Làm sạch CỤC BỘ bên trong các khối toán:
-    - \_   -> _
-    - \^{} -> ^
-    - \^   -> ^
-    - \{   -> {   ;   \} -> }
-    - "\ frac" -> "\frac", v.v.
-    """
     if not text:
         return text
 
