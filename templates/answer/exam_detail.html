@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>exam detail</title>
+</head>
+<body>
+<h2>Bài kiểm tra: {{ exam.name }}</h2>
+<p><b>Mô tả:</b> {{ exam.description }}</p>
+<p><b>Số lần làm bài còn lại:</b> {{ remaining_attempts }}</p>
+
+{% if not current_attempt %}
+    <a href="{% url 'join_exam_code' exam.id %}" class="btn btn-primary">Tham gia bài kiểm tra</a>
+{% else %}
+    {% if current_attempt.status == 'joined' or current_attempt.status == 'submitted' and remaining_attempts > 0 %}
+        <a href="{% url 'start_exam' exam.id %}" class="btn btn-success">Bắt đầu làm bài</a>
+    {% elif current_attempt.status == 'in_process' %}
+        <a href="{% url 'exam_continue' exam.id %}" class="btn btn-success"> Tiếp tục làm bài</a>
+    {% else %}
+        <span class="text-warning">Bạn đã hết lượt làm bài.</span>
+    {% endif %}
+{% endif %}
+</body>
+</html>

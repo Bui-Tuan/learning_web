@@ -1,0 +1,8 @@
+<h2>Xoá đề thi</h2>
+<p>Bạn có chắc muốn xoá đề: <strong>{{ exam.title|default:exam.name }}</strong> (ID: {{ exam.id }})?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Xoá</button>
+  <a href="{% url 'exam_list' %}">Hủy</a>
+</form>

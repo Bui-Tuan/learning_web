@@ -1,0 +1,143 @@
+{% extends "public/base_public.html" %}
+{% load static %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-6">
+        <h1 class="display-5 mb-3">Học & Kiểm tra trực tuyến, <span class="text-primary">nhanh & dễ</span></h1>
+        <p class="lead text-muted">
+          Tạo lớp học, ngân hàng câu hỏi (DOCX → LaTeX), giao đề, chấm điểm tự động,
+          theo dõi tiến độ học sinh – tất cả trong một nền tảng.
+        </p>
+        <div class="cta-btns d-flex gap-2 mt-3">
+          <a href="{% url 'login' %}" class="btn btn-primary btn-lg"><i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập</a>
+          <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">Tạo tài khoản</a>
+        </div>
+        <div class="text-muted small mt-2">Dành cho giáo viên, trường học, trung tâm luyện thi.</div>
+      </div>
+      <div class="col-lg-6">
+        <!-- minh họa: dùng ảnh của Sneat hoặc tạm hình placeholder -->
+        <img class="img-fluid rounded-3 shadow-sm" src="{% static 'assets/img/avatars/1.png' %}" alt="hero">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="tinh-nang" class="py-5">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Tính năng nổi bật</h2>
+      <p class="text-muted">Đáp ứng nhu cầu dạy & học hiện đại.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card feature-card h-100">
+          <div class="card-body">
+            <div class="mb-2"><i class="bi bi-upload fs-2 text-primary"></i></div>
+            <h5>Upload DOCX → Câu hỏi</h5>
+            <p class="text-muted mb-0">Nhập đề từ DOCX, tự trích LaTeX/ảnh, chỉnh sửa trước khi lưu vào ngân hàng.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card feature-card h-100">
+          <div class="card-body">
+            <div class="mb-2"><i class="bi bi-clipboard-check fs-2 text-primary"></i></div>
+            <h5>Giao & Làm bài trực tuyến</h5>
+            <p class="text-muted mb-0">Tạo đề theo lớp, giới hạn thời gian, sinh mã đề, tự động lưu bài.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card feature-card h-100">
+          <div class="card-body">
+            <div class="mb-2"><i class="bi bi-graph-up fs-2 text-primary"></i></div>
+            <h5>Chấm điểm & Báo cáo</h5>
+            <p class="text-muted mb-0">Kết quả tức thì, thống kê điểm, theo dõi tiến bộ theo lớp/học sinh.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="cach-hoat-dong" class="py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Cách hoạt động</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="text-primary fw-bold">01</div>
+            <h6>Đăng nhập</h6>
+            <p class="text-muted mb-0">Tạo tài khoản giáo viên, đăng nhập vào hệ thống.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="text-primary fw-bold">02</div>
+            <h6>Tạo lớp & câu hỏi</h6>
+            <p class="text-muted mb-0">Tạo lớp học, upload DOCX để xây ngân hàng đề.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="text-primary fw-bold">03</div>
+            <h6>Tạo đề thi</h6>
+            <p class="text-muted mb-0">Chọn câu hỏi/đề từ upload, cài thời gian mở/đóng.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="text-primary fw-bold">04</div>
+            <h6>Làm bài & chấm</h6>
+            <p class="text-muted mb-0">Học sinh làm bài, hệ thống chấm & xuất thống kê.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-5">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Câu hỏi thường gặp</h2>
+    </div>
+    <div class="accordion" id="faqAcc">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="q1">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#a1">Có hỗ trợ công thức Toán?</button>
+        </h2>
+        <div id="a1" class="accordion-collapse collapse show" data-bs-parent="#faqAcc">
+          <div class="accordion-body">Có. Hệ thống parse LaTeX từ DOCX và hiển thị bằng MathJax trong phần làm bài.</div>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="q2">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#a2">Có cần cài phần mềm?</button>
+        </h2>
+        <div id="a2" class="accordion-collapse collapse" data-bs-parent="#faqAcc">
+          <div class="accordion-body">Không. Chỉ cần trình duyệt. Giáo viên upload DOCX trực tiếp trên web.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

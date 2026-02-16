@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Exam result</title>
+</head>
+<body>
+<h2>Kết quả bài kiểm tra: {{ exam.name }}</h2>
+<p>Thời gian nộp: {{ student_exam.submit_at }}</p>
+<p>Điểm số: {{ score }}</p>
+<table>
+    <tr>
+        <th>Câu hỏi</th>
+        <th>Đáp án của bạn</th>
+        <th>Đáp án đúng</th>
+        <th>Kết quả</th>
+    </tr>
+    {% for q in question_results %}
+    <tr>
+        <td>{{ q.content|safe }}</td>
+        <td>{{ q.student_answer }}</td>
+        <td>{{ q.correct_answer }}</td>
+        <td>
+            {% if q.is_correct %}<span style="color:green">Đúng</span>
+            {% else %}<span style="color:red">Sai</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

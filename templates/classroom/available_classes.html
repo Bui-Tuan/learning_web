@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Available class</title>
+</head>
+<body>
+    <h2>Tất cả các khóa học hiện có</h2>
+
+    <ul>
+        {% for class in classrooms %}
+            <li>
+                <a href="{% url 'classroom_detail' class.id %}">
+                {{ class.name }} ({{ class.code }})
+                </a><br>
+                Giáo viên: {{ class.id_teacher.full_name }} <br>
+                Trạng thái: {{ class.get_status_display }} <br>
+                Mô tả: {{ class.description|truncatewords:20 }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if not classrooms %}
+    <p>Hiện tại không có lớp học nào mở.</p>
+    {% endif %}
+</body>
+</html>

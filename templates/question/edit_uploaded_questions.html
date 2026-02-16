@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>edit uploaded questions</title>
+  <!-- đặt ở <head> hoặc trước </body> -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['\\[','\\]']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+</head>
+<body>
+<h1>Xem trước câu hỏi trước khi lưu vào hệ thống</h1>
+
+<form method="POST" action="{% url 'save_questions' %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for q in questions %}
+    <div class="question-block" style="border:1px solid #ddd;padding:16px;border-radius:8px;margin-bottom:24px;">
+      <h4>Câu hỏi {{ forloop.counter }}</h4>
+      <div>
+        <p><strong>Nội dung:</strong></p>
+        <div class="question-content">{{ q.content|safe }}</div>
+      </div>
+      {% if q.images %}
+        <div>
+          <b>Ảnh minh họa:</b>
+          {% for img in q.images %}
+            <img src="{{ MEDIA_URL }}{{ img }}" alt="Ảnh đề bài" style="max-width:160px;margin:6px 6px 0 0;">
+            <!-- Hidden input giữ tên ảnh -->
+            <input type="hidden" name="existing_question_image_{{ forloop.counter }}_{{ forloop.counter0 }}" value="{{ img }}">
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div>
+        <p><strong>Đáp án:</strong></p>
+        <ol type="A" class="choices">
+          <li>{{ q.options.0|safe }}</li>
+          <li>{{ q.options.1|safe }}</li>
+          <li>{{ q.options.2|safe }}</li>
+          <li>{{ q.options.3|safe }}</li>
+        </ol>
+      </div>
+      <div style="margin-top:6px;">
+        <b>Đáp án đúng:</b>
+        <select name="answer_{{ forloop.counter }}">
+          {% for opt in "ABCD" %}
+            <option value="{{ opt }}" {% if opt == q.answer %}selected{% endif %}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <b>Độ khó:</b>
+        <select name="rate_{{ forloop.counter }}">
+          <option value="Dễ" {% if q.rate == "Dễ" %}selected{% endif %}>Dễ</option>
+          <option value="Trung Bình" {% if q.rate == "Trung Bình" %}selected{% endif %}>Trung Bình</option>
+          <option value="Khó" {% if q.rate == "Khó" %}selected{% endif %}>Khó</option>
+        </select>
+      </div>
+      <!-- Ẩn dữ liệu cần thiết để lưu -->
+      <input type="hidden" name="latex_question_{{ forloop.counter }}" value="{{ q.content|escape }}">
+      {% for opt in q.options %}
+        <input type="hidden" name="latex_option_{{ forloop.parentloop.counter }}_{{ forloop.counter0 }}" value="{{ opt|escape }}">
+      {% endfor %}
+      <hr>
+    </div>
+  {% empty %}
+    <p>Không có câu hỏi nào được parse. Hãy kiểm tra lại định dạng DOCX.</p>
+  {% endfor %}
+  <button type="submit" class="btn btn-success">Lưu vào CSDL</button>
+</form>
+
+<!-- MathJax hiển thị lại công thức -->
+<script>
+window.MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    },
+    svg: { fontCache: 'global' }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.MathJax) { MathJax.typesetPromise(); }
+});
+</script>
+</body>
+</html>

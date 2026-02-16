@@ -1,0 +1,58 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Login{% endblock %} | Hệ thống học online</title>
+    <!-- Sneat CSS -->
+    <link rel="stylesheet" href="{% static 'assets/vendor/css/core.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/css/theme-default.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/demo.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/css/pages/page-auth.css' %}">
+    <!-- Thêm các asset cần thiết khác -->
+    <style>
+        body {
+            background: #f5f5f9;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-xxl">
+        <div class="authentication-wrapper authentication-basic container-p-y">
+            <div class="authentication-inner py-4">
+                <!-- Logo (tuỳ ý) -->
+                <div class="app-brand justify-content-center mb-3">
+                    <a href="/" class="app-brand-link gap-2">
+                        <span class="app-brand-logo demo">
+                            <!-- icon/logo của bạn -->
+                            <img src="{% static 'assets/img/logo.png' %}" alt="Logo" height="40"/>
+                        </span>
+                        <span class="app-brand-text demo text-body fw-bolder">EduSystem</span>
+                    </a>
+                </div>
+                <!-- Card chứa form -->
+                <div class="card">
+                    <div class="card-body">
+                        {% block content %}
+                        <!-- Nội dung form sẽ ở đây -->
+                        {% endblock %}
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    {% block extra_link %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JS Sneat -->
+    <script src="{% static 'assets/vendor/libs/jquery/jquery.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/popper/popper.js' %}"></script>
+    <script src="{% static 'assets/vendor/js/bootstrap.js' %}"></script>
+    <script src="{% static 'assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js' %}"></script>
+    <script src="{% static 'assets/vendor/js/menu.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+</body>
+</html>

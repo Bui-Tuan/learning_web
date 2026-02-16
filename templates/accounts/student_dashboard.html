@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Students dashboard</title>
+</head>
+<body>
+    <h2>Chào mừng {{ user.full_name }} (Học sinh)</h2>
+    <p>Đây là trang quản lý lớp học, câu hỏi và bài kiểm tra.</p>
+    <a href="{% url 'logout' %}">Đăng xuất</a>
+</body>
+</html>

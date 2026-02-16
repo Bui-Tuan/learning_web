@@ -1,0 +1,30 @@
+{% load static %}
+<nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached bg-navbar-theme">
+  <div class="navbar-nav-right d-flex align-items-center w-100" id="navbar-collapse">
+
+    <div class="navbar-nav align-items-center">
+      <div class="nav-item d-flex align-items-center">
+        <i class="bx bx-search fs-4 lh-0"></i>
+        <form method="get" action="{% url 'student_exams' %}">
+          <input type="text" class="form-control border-0 shadow-none" placeholder="Tìm kỳ thi…" name="kw" value="{{ kw|default_if_none:'' }}"/>
+        </form>
+      </div>
+    </div>
+
+    <ul class="navbar-nav flex-row align-items-center ms-auto">
+      <li class="nav-item navbar-dropdown dropdown-user dropdown">
+        <a class="nav-link dropdown-toggle hide-arrow" href="#" data-bs-toggle="dropdown">
+          <div class="avatar avatar-online">
+            <img src="{% static 'assets/img/avatars/1.png' %}" class="w-px-40 h-auto rounded-circle" alt="">
+          </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><span class="dropdown-item-text">{{ request.user.get_full_name|default:request.user.username }}</span></li>
+          <li><div class="dropdown-divider"></div></li>
+          <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bx bx-user me-2"></i><span>Hồ sơ</span></a></li>
+          <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="bx bx-log-out me-2"></i><span>Đăng xuất</span></a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>

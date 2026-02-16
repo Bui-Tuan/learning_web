@@ -1,0 +1,78 @@
+{% extends "auth_base.html" %}
+{% block title %}Đăng ký tài khoản mới{% endblock %}
+{% block content %}
+    <h4 class="mb-2">Đăng ký tài khoản mới</h4>
+    <p class="mb-4">Điền thông tin để tạo tài khoản học sinh/giáo viên.</p>
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="text-danger small">{{ form.username.errors|striptags }}</div>
+            {% endif %}
+            {% if form.username.help_text %}
+                <div class="form-text">{{ form.username.help_text }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="text-danger small">{{ form.email.errors|striptags }}</div>
+            {% endif %}
+            {% if form.email.help_text %}
+                <div class="form-text">{{ form.email.help_text }}</div>
+            {% endif %}
+        </div>
+        {% if form.full_name %}
+        <div class="mb-3">
+            {{ form.full_name.label_tag }}
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+                <div class="text-danger small">{{ form.full_name.errors|striptags }}</div>
+            {% endif %}
+            {% if form.full_name.help_text %}
+                <div class="form-text">{{ form.full_name.help_text }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if form.role %}
+        <div class="mb-3">
+            {{ form.role.label_tag }}
+            {{ form.role }}
+            {% if form.role.errors %}
+                <div class="text-danger small">{{ form.role.errors|striptags }}</div>
+            {% endif %}
+            {% if form.role.help_text %}
+                <div class="form-text">{{ form.role.help_text }}</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        <div class="mb-3">
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="text-danger small">{{ form.password1.errors|striptags }}</div>
+            {% endif %}
+            {% if form.password1.help_text %}
+                <div class="form-text">{{ form.password1.help_text }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="text-danger small">{{ form.password2.errors|striptags }}</div>
+            {% endif %}
+            {% if form.password2.help_text %}
+                <div class="form-text">{{ form.password2.help_text }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary d-grid w-100 py-2 rounded-2 shadow-sm">Đăng ký</button>
+    </form>
+{% endblock %}
+{% block extra_link %}
+    <a href="{% url 'login' %}">Đã có tài khoản? <span class="text-primary">Đăng nhập</span></a>
+{% endblock %}

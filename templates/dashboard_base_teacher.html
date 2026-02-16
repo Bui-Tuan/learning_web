@@ -1,0 +1,88 @@
+{% load static %}
+<!doctype html>
+<html lang="vi" class="light-style layout-menu-fixed" dir="ltr"
+      data-theme="theme-default" data-assets-path="{% static 'assets/' %}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{% block title %}Bảng điều khiển giáo viên{% endblock %} · EduExam</title>
+
+  <!-- Sneat / Bootstrap -->
+  <link rel="stylesheet" href="{% static 'assets/vendor/css/core.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendor/css/theme-default.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/css/demo.css' %}"/>
+  <link rel="stylesheet" href="{% static 'assets/vendor/fonts/boxicons.css' %}"/>
+  <style>
+    .edu-breadcrumb {font-size:.9rem;color:#6c757d}
+    .menu .menu-inner>.menu-item.active>.menu-link {background:#eef2ff}
+    .content-wrapper{min-height:calc(100vh - 64px)}
+    .page-title{letter-spacing:-.02em}
+    .card-hover{transition:transform .15s ease, box-shadow .15s ease}
+    .card-hover:hover{transform:translateY(-2px); box-shadow:0 1rem 2rem rgba(0,0,0,.08)}
+  </style>
+  <script src="{% static 'assets/vendor/js/helpers.js'%}"></script>
+  <script src="{% static 'assets/js/config.js'%}"></script>
+</head>
+<body>
+
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+
+    <!-- Sidebar -->
+    {% include "_sidebar_teacher.html" %}
+
+    <!-- Content -->
+    <div class="layout-page">
+      {% include "_topbar_teacher.html" %}
+
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+
+          {% block header %}
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <h3 class="mb-1 page-title">{% block page_title %}Bảng điều khiển{% endblock %}</h3>
+              <div class="edu-breadcrumb">{% block breadcrumb %}Trang chủ · Giáo viên{% endblock %}</div>
+            </div>
+            {% block header_actions %}{% endblock %}
+          </div>
+          {% endblock %}
+
+          {% if messages %}
+            <div class="mb-3">
+              {% for m in messages %}
+                <div class="alert alert-{{ m.tags }} mb-2">{{ m }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% block content %}{% endblock %}
+        </div>
+
+        <footer class="content-footer footer bg-footer-theme">
+          <div class="container-xxl d-flex justify-content-between py-2">
+            <div>© {{ now|date:"Y" }} EduExam</div>
+            <div class="d-none d-sm-inline-block">Phiên giáo viên</div>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JS -->
+<script src="{% static 'assets/vendor/libs/jquery/jquery.js'%}"></script>
+<script src="{% static 'assets/vendor/libs/popper/popper.js'%}"></script>
+<script src="{% static 'assets/vendor/js/bootstrap.js'%}"></script>
+<script src="{% static 'assets/vendor/js/menu.js'%}"></script>
+<script src="{% static 'assets/js/main.js'%}"></script>
+
+<!-- MathJax (nếu cần render công thức trong list) -->
+<script>
+  window.MathJax={tex:{inlineMath:[['\\(','\\)'],['$','$']]},svg:{fontCache:'global'}};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,41 @@
+{% load static %}
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+  <div class="app-brand demo py-3">
+    <a href="{% url 'student_dashboard' %}" class="app-brand-link">
+      <span class="app-brand-text demo menu-text fw-bold ms-2">EduExam</span>
+    </a>
+  </div>
+  <div class="menu-inner-shadow"></div>
+
+  <ul class="menu-inner py-1">
+    <li class="menu-item {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+      <a href="{% url 'student_dashboard' %}" class="menu-link">
+        <i class="menu-icon bx bx-home"></i><div>Dashboard</div>
+      </a>
+    </li>
+
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Lớp học</span></li>
+    <li class="menu-item {% if request.resolver_match.url_name in 'student_classes' %}active{% endif %}">
+      <a href="{% url 'classroom_list' %}" class="menu-link">
+        <i class="menu-icon bx bx-chalkboard"></i><div>Lớp của tôi</div>
+      </a>
+    </li>
+    <li class="menu-item {% if request.resolver_match.url_name in 'student_class_available' %}active{% endif %}">
+      <a href="{% url 'available_classes' %}" class="menu-link">
+        <i class="menu-icon bx bx-search-alt-2"></i><div>Tham gia lớp</div>
+      </a>
+    </li>
+
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Kỳ thi</span></li>
+    <li class="menu-item {% if request.resolver_match.url_name in 'student_exams' %}active{% endif %}">
+      <a href="{% url 'student_exams' %}" class="menu-link">
+        <i class="menu-icon bx bx-file"></i><div>Kỳ thi của tôi</div>
+      </a>
+    </li>
+    <li class="menu-item {% if request.resolver_match.url_name in 'student_results' %}active{% endif %}">
+      <a href="{% url 'student_results_grouped' %}" class="menu-link">
+        <i class="menu-icon bx bx-bar-chart"></i><div>Kết quả</div>
+      </a>
+    </li>
+  </ul>
+</aside>
